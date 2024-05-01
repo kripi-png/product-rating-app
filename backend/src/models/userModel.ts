@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
-import type {IUser} from "../types";
+import type { IUser } from '../types';
 
 const Schema = mongoose.Schema;
 
@@ -13,6 +13,7 @@ const UserSchema = new Schema<IUser>({
 	},
 	email: {
 		type: String,
+		unique: true,
 		lowercase: true,
 		trim: true,
 		required: true,
@@ -26,7 +27,7 @@ const UserSchema = new Schema<IUser>({
 	},
 });
 
-UserSchema.methods.comparePassword = function(password: string) {
+UserSchema.methods.comparePassword = function (password: string) {
 	return bcrypt.compareSync(password, this.hash_password);
 };
 
