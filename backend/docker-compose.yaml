@@ -1,0 +1,26 @@
+version: '3'
+services:
+  redis:
+    container_name: arvostelu-redis
+    image: redis:latest
+    ports:
+      - '6379:6379'
+    restart: always
+    networks:
+      - arvostelu-network
+
+  mongodb:
+    container_name: arvostelu-mongodb
+    image: mongo:latest
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - '27017:27017'
+    command: mongod
+    networks:
+      - arvostelu-network
+volumes:
+  mongo-data:
+networks:
+  arvostelu-network:
