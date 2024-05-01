@@ -1,7 +1,10 @@
 import type { Application } from 'express';
-import * as userController from '../controllers/userController';
+import * as authController from '../controllers/authController';
 
 export default (app: Application) => {
-	app.route('/auth/register').post(userController.register);
-	app.route('/auth/sign_in').post(userController.sign_in);
+	app.route('/auth/register').post(authController.register);
+	app.route('/auth/sign_in').post(authController.sign_in);
+	app.route('/profile').get(authController.loginRequired, (_req, res) => {
+		res.send('hallo');
+	});
 };

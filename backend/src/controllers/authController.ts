@@ -1,4 +1,5 @@
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
+import type { IJWTUser } from '../types';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -41,7 +42,11 @@ export const sign_in = (req: Request, res: Response) => {
 
 				// generate and return a JWT token
 				const token = jwt.sign(
-					{ email: user.email, displayName: user.displayName, _id: user._id },
+					<IJWTUser>{
+						email: user.email,
+						displayName: user.displayName,
+						_id: user._id,
+					},
 					'ASD'
 				);
 				return res.json({
@@ -58,3 +63,12 @@ export const sign_in = (req: Request, res: Response) => {
 		return res.status(400).send({ message: err.message });
 	}
 };
+
+export function loginRequired(req: Request, res: Response, next: NextFunction) {
+	/* a simple middleware for checking if request has JWT-token / user data */
+	if (req.user) {
+		next();
+	} else {
+		return res.status(401).send({ message: 'Unauthorized!' });
+	}
+}

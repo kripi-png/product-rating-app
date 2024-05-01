@@ -1,5 +1,14 @@
+import type { IJWTUser } from './types';
 import express from 'express';
+import jsonwebtoken from 'jsonwebtoken';
 import './db'; // include and init db without *really* importing anything
+
+// some extension magic to allow user prop inside requests
+declare module 'express-serve-static-core' {
+	interface Request {
+		user: IJWTUser | undefined;
+	}
+}
 
 import userRoute from './routes/userRoute';
 
@@ -10,6 +19,27 @@ app.use(
 		extended: true,
 	})
 );
+
+app.use((req, _res, next) => {
+	if (
+		req.headers &&
+		req.headers.authorization &&
+		req.headers.authorization.split(' ')[0] === 'Bearer'
+	) {
+		jsonwebtoken.verify(
+			req.headers.authorization.split(' ')[1],
+			'ASD',
+			(err, decode) => {
+				if (err) req.user = undefined;
+				req.user = <IJWTUser>decode; // cast decoded data
+				next();
+			}
+		);
+	} else {
+		req.user = undefined;
+		next();
+	}
+});
 
 app.get('/', (_req, res) => {
 	res.send('Hello World');
