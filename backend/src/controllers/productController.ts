@@ -1,15 +1,80 @@
 import type { Request, Response } from 'express';
+import type { IProduct } from '../types';
 
-export const getProductInfo = (
+import { Product } from '../models/productModel';
+import { redis } from '../cache';
+
+export const getProductInfo = async (
 	req: Request<{ barcode: string }>,
-	res: Response
+	res: Response<IProduct | { message: string }>
 ) => {
-	/*
-		1. Check cache for existing data; if nothing is found,
-		2. Check database for existing data; if nothing is found,
-		3. Check Open Food Facts / go-upc.com for existing data; if nothing is found,
-		4. Report to the requester nothing was found (and ask them to enter the information
-				using POST /products)
-	*/
-	res.status(200).json({ x: 2 });
+	try {
+		/* preferably database already holds info of product */
+		const product = await Product.findOne<IProduct>({
+			barcode: req.params.barcode,
+		}).exec();
+
+		if (product) {
+			const cacheExpires = new Date();
+			const cacheLifetime = Number(process.env?.CACHE_LIFETIME_DAYS) || 2;
+			cacheExpires.setDate(cacheExpires.getDate() + cacheLifetime);
+
+			redis.hset(`products:${product.barcode}`, {
+				barcode: product.barcode,
+				name: product.name,
+				avgRating: product.avgRating,
+				created: product.created,
+				expires: cacheExpires,
+			});
+			return res.status(200).json({
+				barcode: product.barcode,
+				name: product.name,
+				avgRating: product.avgRating,
+				created: product.created,
+			});
+		}
+
+		/* try to find data on Open Food Facts (OFF) */
+		console.log('product', req.params.barcode, 'not found. checking OFF');
+		const offUrl = `https://world.openfoodfacts.org/api/v3/product/${req.params.barcode}.json?fields=code,product_name_en`;
+		const offResponse = await fetch(offUrl)
+			.then(async (r) => await r.json())
+			.catch((err: any) => {
+				console.error('openfoodfacts fetch error:', err);
+			});
+
+		/* in case even OFF didn't have the product data, inform the user and suggest submitting product info */
+		if (!offResponse || offResponse.result.id === 'product_not_found') {
+			console.log('not found');
+			return res.status(404).json({
+				message: 'product not found. consider submitting product information.',
+			});
+		}
+
+		/* if OFF had the data, create a db entry for it */
+		if (offResponse && offResponse.product) {
+			const newProduct = new Product<IProduct>({
+				barcode: offResponse.product.code,
+				name: offResponse.product.product_name_en,
+			});
+
+			newProduct
+				.save()
+				.then((product) => {
+					console.log('new product:', product.barcode);
+					return res.status(201).send({ message: 'created' });
+				})
+				.catch((err) => {
+					console.error(
+						`error while saving product ${req.params.barcode}: ${err}`
+					);
+					return res.status(500).send({
+						message: err,
+					});
+				});
+		}
+	} catch (err: any) {
+		console.error(err);
+		return res.status(400).send({ message: err.message });
+	}
 };

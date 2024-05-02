@@ -28,5 +28,7 @@ export const checkCacheMiddleware =
 		}
 
 		// if cache exists and is valid, simply return its values
-		res.status(200).json(await redis.hgetall(key));
+		const product = await redis.hgetall(key);
+		delete product.expires;
+		res.status(200).json(product);
 	};

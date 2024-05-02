@@ -17,6 +17,6 @@ export interface IJWTUser {
 export interface IProduct {
 	barcode: string;
 	name: string;
-	avgRating: number;
-	created: Date;
+	avgRating?: number;
+	created?: Date;
 }
