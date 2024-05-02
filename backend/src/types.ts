@@ -13,3 +13,10 @@ export interface IJWTUser {
 	email: string;
 	displayName: string;
 }
+
+export interface IProduct {
+	barcode: string;
+	name: string;
+	avgRating: number;
+	created: Date;
+}

@@ -47,7 +47,7 @@ export const sign_in = (req: Request, res: Response) => {
 						displayName: user.displayName,
 						_id: user._id,
 					},
-				<string>process.env.JWT_SECRET,
+					<string>process.env.JWT_SECRET
 				);
 				return res.json({
 					token: token,

@@ -1,9 +1,13 @@
 import type { IJWTUser } from './types';
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 dotenv.config();
+
 import express from 'express';
 import jsonwebtoken from 'jsonwebtoken';
-import './db'; // include and init db without *really* importing anything
+
+// include and init db and cache without *really* importing anything
+import './db';
+import './cache';
 
 // some extension magic to allow user prop inside requests
 declare module 'express-serve-static-core' {
@@ -13,6 +17,7 @@ declare module 'express-serve-static-core' {
 }
 
 import userRoute from './routes/userRoute';
+import productRoute from './routes/productRoute';
 
 const app = express();
 app.use(express.json());
@@ -48,6 +53,7 @@ app.get('/', (_req, res) => {
 });
 
 userRoute(app);
+productRoute(app);
 
 app.listen(3000, () => {
 	console.log('Server online and listening on port 3000');
