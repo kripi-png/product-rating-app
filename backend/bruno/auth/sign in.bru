@@ -16,3 +16,10 @@ body:json {
     "password": "asd123"
   }
 }
+
+script:post-response {
+  // update env JWT_TOKEN secret automatically
+  const token = res?.body?.token;
+  if (token)
+    bru.setEnvVar("JWT_TOKEN",res.body.token)
+}
