@@ -1,4 +1,6 @@
 import type { IJWTUser } from './types';
+import dotenv from "dotenv";
+dotenv.config();
 import express from 'express';
 import jsonwebtoken from 'jsonwebtoken';
 import './db'; // include and init db without *really* importing anything
@@ -28,7 +30,7 @@ app.use((req, _res, next) => {
 	) {
 		jsonwebtoken.verify(
 			req.headers.authorization.split(' ')[1],
-			'ASD',
+			<string>process.env.JWT_SECRET,
 			(err, decode) => {
 				if (err) req.user = undefined;
 				req.user = <IJWTUser>decode; // cast decoded data
