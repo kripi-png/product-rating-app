@@ -78,3 +78,29 @@ export const getProductInfo = async (
 		return res.status(400).send({ message: err.message });
 	}
 };
+
+export const addProductInformation = async (
+	req: Request<{}, {}, IProduct>,
+	res: Response
+) => {
+	try {
+		if (await Product.exists({ barcode: req.body.barcode })) {
+			return res.status(400).json({
+				message: `product with barcode ${req.body.barcode} already exists.`,
+			});
+		}
+		const newProduct = new Product<IProduct>(req.body);
+		newProduct
+			.save()
+			.then((product) => {
+				return res.status(201).json(product);
+			})
+			.catch((err) => {
+				console.error('error while saving a new product');
+				return res.status(500).send({ message: err });
+			});
+	} catch (err: any) {
+		console.error(err);
+		return res.status(400).send({ message: err.message });
+	}
+};

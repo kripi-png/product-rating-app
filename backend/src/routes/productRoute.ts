@@ -11,4 +11,7 @@ export default (app: Application) => {
 			checkCache('products', 'barcode'),
 			productController.getProductInfo
 		);
+	app
+		.route('/products')
+		.post(loginRequired, productController.addProductInformation);
 };

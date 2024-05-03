@@ -1,0 +1,22 @@
+meta {
+  name: add product
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/products
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_TOKEN}}
+}
+
+body:json {
+  {
+    "name": "K-Supermarket Lämminsavulohipatonki",
+    "barcode": "2000959904495"
+  }
+}
