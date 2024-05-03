@@ -16,19 +16,9 @@ export const checkCacheMiddleware =
 
 		// e.g. products:4047443419439
 		const key = cacheScope + ':' + req.params[keyName];
-		const isCached = await redis.hexists(key, 'barcode');
-		if (!isCached) return next();
-
-		const expiresDateStr = await redis.hget(key, 'expires');
-		const expires = new Date(<string>expiresDateStr);
-		// if date is invalid or has been passed,
-		if (!expires || isNaN(<any>expires) || new Date() >= expires) {
-			redis.del(key); // delete expired entry
-			return next();
-		}
-
-		// if cache exists and is valid, simply return its values
 		const product = await redis.hgetall(key);
-		delete product.expires;
+		// if data does not exist go to next middleware
+		if (Object.keys(product).length === 0) return next();
+
 		res.status(200).json(product);
 	};

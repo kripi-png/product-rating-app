@@ -15,17 +15,17 @@ export const getProductInfo = async (
 		}).exec();
 
 		if (product) {
-			const cacheExpires = new Date();
-			const cacheLifetime = Number(process.env?.CACHE_LIFETIME_DAYS) || 2;
-			cacheExpires.setDate(cacheExpires.getDate() + cacheLifetime);
-
-			redis.hset(`products:${product.barcode}`, {
-				barcode: product.barcode,
-				name: product.name,
-				avgRating: product.avgRating,
-				created: product.created,
-				expires: cacheExpires,
-			});
+			const cacheLifetimeDays = Number(process.env?.CACHE_LIFETIME_DAYS) || 2;
+			redis
+				.pipeline()
+				.hset(`products:${product.barcode}`, {
+					barcode: product.barcode,
+					name: product.name,
+					avgRating: product.avgRating,
+					created: product.created,
+				})
+				.expire(`products:${product.barcode}`, cacheLifetimeDays * 24 * 60 * 60)
+				.exec();
 			return res.status(200).json({
 				barcode: product.barcode,
 				name: product.name,
