@@ -3,8 +3,9 @@ export interface IUser {
 	displayName: string;
 	email: string;
 	hash_password?: string;
-	created: Date;
 	comparePassword: (password: string) => {};
+	createdAt?: Date;
+	updatedAt?: Date;
 }
 
 // type of data inside JWT tokens
@@ -17,6 +18,28 @@ export interface IJWTUser {
 export interface IProduct {
 	barcode: string;
 	name: string;
-	avgRating?: number;
-	created?: Date;
+	avgRating?: number | string;
+	createdAt?: Date;
+	updatedAt?: Date;
+}
+
+export interface IReaction {
+	icon: string;
+	userId: Types.ObjectId;
+	createdAt?: Date;
+	updatedAt?: Date;
+}
+
+export interface IReview {
+	productId: Types.ObjectId;
+	productName: string;
+	productBarcode: string;
+	authorId: Types.ObjectId;
+	picture?: string;
+	rating: Types.Decimal128;
+	text: string;
+	tags: string[];
+	reactions: IReaction[];
+	createdAt?: Date;
+	updatedAt?: Date;
 }

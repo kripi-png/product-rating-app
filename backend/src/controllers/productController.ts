@@ -22,7 +22,6 @@ export const getProductInfo = async (
 					barcode: product.barcode,
 					name: product.name,
 					avgRating: product.avgRating,
-					created: product.created,
 				})
 				.expire(`products:${product.barcode}`, cacheLifetimeDays * 24 * 60 * 60)
 				.exec();
@@ -30,7 +29,8 @@ export const getProductInfo = async (
 				barcode: product.barcode,
 				name: product.name,
 				avgRating: product.avgRating,
-				created: product.created,
+				createdAt: product.createdAt,
+				updatedAt: product.updatedAt,
 			});
 		}
 

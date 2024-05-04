@@ -32,9 +32,10 @@ export const register = (req: Request, res: Response) => {
 
 export const sign_in = (req: Request, res: Response) => {
 	try {
-		User.findOne({
-			email: req.body.email,
-		})
+		User.findOne(
+			{ email: req.body.email },
+			{ email: true, hash_password: true } // explicitly get email and password which are exluded by default
+		)
 			.exec()
 			.then((user) => {
 				if (!user || !user.comparePassword(req.body.password))

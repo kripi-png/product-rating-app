@@ -4,23 +4,24 @@ import type { IProduct } from '../types';
 
 const Schema = mongoose.Schema;
 
-const ProductSchema = new Schema<IProduct>({
-	barcode: {
-		type: String,
-		required: true,
+const ProductSchema = new Schema<IProduct>(
+	{
+		barcode: {
+			type: String,
+			required: true,
+			trim: true,
+		},
+		name: {
+			type: String,
+			required: true,
+			trim: true,
+		},
+		avgRating: {
+			type: Number,
+			default: 0.0,
+		},
 	},
-	name: {
-		type: String,
-		required: true,
-	},
-	avgRating: {
-		type: Number,
-		default: 0.0,
-	},
-	created: {
-		type: Date,
-		default: Date.now,
-	},
-});
+	{ timestamps: true }
+);
 
 export const Product = mongoose.model<IProduct>('Product', ProductSchema);
