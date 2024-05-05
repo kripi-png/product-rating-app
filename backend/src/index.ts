@@ -18,6 +18,7 @@ declare module 'express-serve-static-core' {
 
 import userRoute from './routes/userRoute';
 import productRoute from './routes/productRoute';
+import reviewRoute from './routes/reviewRoute';
 
 const app = express();
 app.use(express.json());
@@ -54,6 +55,7 @@ app.get('/', (_req, res) => {
 
 userRoute(app);
 productRoute(app);
+reviewRoute(app);
 
 app.listen(3000, () => {
 	console.log('Server online and listening on port 3000');
