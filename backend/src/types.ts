@@ -16,7 +16,8 @@ export interface IJWTUser {
 }
 
 export interface IProduct {
-	barcode: string;
+	_id?: string;
+	barcode: string; // barcode is an alias for _id
 	name: string;
 	avgRating?: number | string;
 	createdAt?: Date;

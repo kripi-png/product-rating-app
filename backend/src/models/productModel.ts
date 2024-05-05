@@ -1,15 +1,21 @@
-import mongoose from 'mongoose';
-
 import type { IProduct } from '../types';
+
+import mongoose from 'mongoose';
+import { validate as validateBarcode } from '../utils/barcodeValidator';
 
 const Schema = mongoose.Schema;
 
 const ProductSchema = new Schema<IProduct>(
 	{
-		barcode: {
+		_id: {
 			type: String,
-			required: true,
 			trim: true,
+			required: true,
+			alias: 'barcode',
+			validate: {
+				validator: (v: string) => validateBarcode(v),
+				message: (props) => `${props.value} is not a valid barcode`,
+			},
 		},
 		name: {
 			type: String,
@@ -18,7 +24,9 @@ const ProductSchema = new Schema<IProduct>(
 		},
 		avgRating: {
 			type: Number,
-			default: 0.0,
+			min: 1.0,
+			max: 5.0,
+			default: null,
 		},
 	},
 	{ timestamps: true }

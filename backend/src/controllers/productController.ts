@@ -11,7 +11,7 @@ export const getProductInfo = async (
 	try {
 		/* preferably database already holds info of product */
 		const product = await Product.findOne<IProduct>({
-			barcode: req.params.barcode,
+			_id: req.params.barcode,
 		}).exec();
 
 		if (product) {
@@ -21,7 +21,9 @@ export const getProductInfo = async (
 				.hset(`products:${product.barcode}`, {
 					barcode: product.barcode,
 					name: product.name,
-					avgRating: product.avgRating,
+					avgRating: product.avgRating ?? 0, // redis stores null as empty string
+					createdAt: product.createdAt,
+					updatedAt: product.updatedAt,
 				})
 				.expire(`products:${product.barcode}`, cacheLifetimeDays * 24 * 60 * 60)
 				.exec();
