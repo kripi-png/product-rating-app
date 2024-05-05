@@ -14,6 +14,11 @@ export const checkCacheMiddleware =
 			care of further actions (db queries etc.)
 		*/
 
+		if (process.env?.DISABLE_CACHE) {
+			console.warn('Cache is disabled due to environment variable');
+			return next();
+		}
+
 		// e.g. products:4047443419439
 		const key = cacheScope + ':' + req.params[keyName];
 		const product = await redis.hgetall(key);
