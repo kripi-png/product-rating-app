@@ -5,7 +5,19 @@ meta {
 }
 
 post {
-  url: 
-  body: none
-  auth: none
+  url: http://localhost:3000/reviews
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_TOKEN}}
+}
+
+body:json {
+  {
+    "productBarcode": "7340011449225",
+    "productName": "Rainbow Salt & Chef merisuola",
+    "rating": 1.9
+  }
 }
