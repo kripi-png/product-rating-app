@@ -1,22 +1,18 @@
 import type { Request, Response } from 'express';
-import type { IReview } from '../types';
-import type { Types } from 'mongoose';
+import type {
+	APIResponse,
+	IReview,
+	ReqReview,
+	ResReview,
+	ResUser,
+} from '../types';
 
 import { Review } from '../models/reviewModel';
 import { Product } from '../models/productModel';
-// import { redis } from '../cache';
 
-interface IReqReview {
-	productBarcode: string;
-	productName: string;
-	rating: Types.Decimal128;
-	picture?: string;
-	text?: string;
-	tags?: string[];
-}
 export const postReview = async (
-	req: Request<{}, {}, IReqReview>,
-	res: Response<IReview | { message: string }>
+	req: Request<{}, {}, ReqReview>,
+	res: Response<APIResponse<ResReview>>
 ) => {
 	try {
 		if (!(await Product.exists({ _id: req.body.productBarcode }))) {
@@ -30,30 +26,89 @@ export const postReview = async (
 			return res.status(401).json({ message: 'Unauthorized' });
 		}
 
-		const reviewData: IReview = {
+		const newReview = new Review<IReview>({
 			productId: req.body.productBarcode,
 			productName: req.body.productName,
 			productBarcode: req.body.productBarcode,
-			authorId: req.user?._id,
+			authorId: req.user._id,
 			rating: req.body.rating,
-			// picture: req.body.picture,
-			text: req.body.text ?? '',
-			tags: req.body.tags ?? [],
+			text: req.body.text || '',
+			tags: req.body.tags || [],
+			picture: req.body.picture,
 			reactions: [],
-		};
+		});
 
-		const newReview = new Review(reviewData);
 		newReview
 			.save()
+			.then((review) => review.populate<{ authorId: ResUser }>('authorId'))
 			.then((review) => {
-				return res.status(201).json(review);
+				return res.status(201).json({
+					_id: review._id,
+					productBarcode: review.productBarcode,
+					productName: review.productName,
+					author: {
+						_id: review.authorId._id,
+						displayName: review.authorId.displayName,
+						picture: review.authorId.picture,
+					},
+					rating: review.rating,
+					text: review.text,
+					tags: review.tags,
+					reactions: review.reactions,
+					picture: review.picture,
+					createdAt: <Date>review.createdAt,
+					updatedAt: <Date>review.updatedAt,
+				});
 			})
 			.catch((err) => {
 				console.error('error while saving a new review');
-				return res.status(500).send({ message: err });
+				return res.status(500).json({ message: err });
 			});
 	} catch (err: any) {
 		console.error(err);
-		return res.status(400).send({ message: err.message });
+		return res.status(400).json({ message: err.message });
+	}
+};
+
+export const getReviewById = async (
+	req: Request<{ id: string }>,
+	res: Response<APIResponse<ResReview>>
+) => {
+	try {
+		const review = await Review.findById(req.params.id);
+		if (!review) {
+			return res
+				.status(404)
+				.json({ message: `There is no review with id ${req.body.id}` });
+		}
+
+		review
+			.populate<{ authorId: ResUser }>('authorId')
+			.then((review) => {
+				return res.status(200).json({
+					_id: review._id,
+					productBarcode: review.productBarcode,
+					productName: review.productName,
+					author: {
+						_id: review.authorId._id,
+						displayName: review.authorId.displayName,
+						picture: review.authorId.picture,
+					},
+					rating: review.rating,
+					text: review.text,
+					tags: review.tags,
+					reactions: review.reactions,
+					picture: review.picture,
+					createdAt: <Date>review.createdAt,
+					updatedAt: <Date>review.updatedAt,
+				});
+			})
+			.catch((err) => {
+				console.error('Error populating a review document', review._id);
+				return res.status(500).json({ message: err });
+			});
+	} catch (err: any) {
+		console.error(err);
+		return res.status(400).json({ message: err.message });
 	}
 };

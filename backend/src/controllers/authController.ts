@@ -1,11 +1,18 @@
 import type { Request, Response, NextFunction } from 'express';
-import type { IJWTUser } from '../types';
+import type { APIResponse, IJWTUser } from '../types';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 import { User } from '../models/userModel';
 
-export const register = (req: Request, res: Response) => {
+export const register = (
+	req: Request<
+		{},
+		{},
+		{ displayName: string; email: string; password: string }
+	>,
+	res: Response<APIResponse<null>>
+) => {
 	try {
 		const newUser = new User(req.body);
 		// hash user password
@@ -14,24 +21,30 @@ export const register = (req: Request, res: Response) => {
 
 		newUser
 			.save()
-			.then((user) => {
+			.then(() => {
 				// do not return the hashed password
-				user.hash_password = undefined;
-				return res.status(201).send({ message: 'New user registered.' });
+				return res.status(201).json({ message: 'New user registered.' });
 			})
 			.catch((err) => {
-				return res.status(500).send({
+				return res.status(500).json({
 					message: err,
 				});
 			});
 	} catch (err: any) {
 		console.error(err);
-		return res.status(400).send({ message: err.message });
+		return res.status(400).json({ message: err.message });
 	}
 };
 
-export const sign_in = (req: Request, res: Response) => {
+export const sign_in = (
+	req: Request<{}, {}, { email: string; password: string }>,
+	res: Response<APIResponse<{ token: string }>>
+) => {
 	try {
+		if (!process.env.JWT_SECRET) {
+			throw Error('Missing environment variable');
+		}
+
 		User.findOne(
 			{ email: req.body.email },
 			{ email: true, hash_password: true } // explicitly get email and password which are exluded by default
@@ -39,37 +52,42 @@ export const sign_in = (req: Request, res: Response) => {
 			.exec()
 			.then((user) => {
 				if (!user || !user.comparePassword(req.body.password))
-					return res.status(400).send({ message: 'Invalid user or password.' });
+					return res.status(400).json({ message: 'Invalid user or password.' });
 
 				// generate and return a JWT token
 				const token = jwt.sign(
 					<IJWTUser>{
 						email: user.email,
 						displayName: user.displayName,
+						pictureUrl: user.picture,
 						_id: user._id,
 					},
-					<string>process.env.JWT_SECRET
+					process.env.JWT_SECRET as string
 				);
 				return res.json({
 					token: token,
 				});
 			})
 			.catch((err) => {
-				return res.status(500).send({
+				return res.status(500).json({
 					message: err,
 				});
 			});
 	} catch (err: any) {
 		console.error(err);
-		return res.status(400).send({ message: err.message });
+		return res.status(400).json({ message: err.message });
 	}
 };
 
-export function loginRequired(req: Request, res: Response, next: NextFunction) {
+export function loginRequired(
+	req: Request,
+	res: Response<APIResponse<null>>,
+	next: NextFunction
+) {
 	/* a simple middleware for checking if request has JWT-token / user data */
 	if (req.user) {
 		next();
 	} else {
-		return res.status(401).send({ message: 'Unauthorized!' });
+		return res.status(401).json({ message: 'Unauthorized!' });
 	}
 }

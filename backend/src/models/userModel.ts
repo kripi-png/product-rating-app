@@ -1,7 +1,7 @@
+import type { IUser } from '../types';
+
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
-
-import type { IUser } from '../types';
 
 const Schema = mongoose.Schema;
 
@@ -24,6 +24,9 @@ const UserSchema = new Schema<IUser>(
 			type: String,
 			requred: true,
 			select: false,
+		},
+		picture: {
+			type: String,
 		},
 	},
 	{ timestamps: true }

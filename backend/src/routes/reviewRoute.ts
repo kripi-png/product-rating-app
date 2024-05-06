@@ -6,4 +6,5 @@ import * as reviewController from '../controllers/reviewController';
 
 export default (app: Application) => {
 	app.route('/reviews').post(loginRequired, reviewController.postReview);
+	app.route('/reviews/:id').get(loginRequired, reviewController.getReviewById);
 };
