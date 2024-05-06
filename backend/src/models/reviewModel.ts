@@ -21,8 +21,9 @@ const ReactionSchema = new Schema<IReaction>(
 const ReviewSchema = new Schema<IReview>(
 	{
 		productId: {
-			type: Schema.Types.ObjectId,
+			type: String,
 			ref: 'Product',
+			required: true,
 		},
 		productName: {
 			type: String,
@@ -38,10 +39,7 @@ const ReviewSchema = new Schema<IReview>(
 		authorId: {
 			type: Schema.Types.ObjectId,
 			ref: 'User',
-		},
-		picture: {
-			type: String,
-			trim: true,
+			required: true,
 		},
 		rating: {
 			type: Schema.Types.Decimal128,
@@ -51,10 +49,14 @@ const ReviewSchema = new Schema<IReview>(
 			set: (v: string | number) =>
 				new mongoose.Types.Decimal128(String(v).substring(0, 3)), // strip instead of round; 4.999 -> 4.9 instead of 5
 		},
+
+		picture: {
+			type: String,
+			trim: true,
+		},
 		text: {
 			type: String,
 			trim: true,
-			required: false,
 		},
 		tags: [
 			{
