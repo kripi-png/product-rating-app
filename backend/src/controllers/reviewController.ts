@@ -117,51 +117,107 @@ export const getReviewById = async (
 	}
 };
 
+type ReqReaction =
+	| {
+			action: 'ADD';
+			icon: ReactionIcon;
+	  }
+	| {
+			action: 'CHANGE';
+			icon: ReactionIcon;
+	  }
+	| {
+			action: 'REMOVE';
+	  };
+
 export const addReactionToReview = async (
-	req: Request<{ id: string }, {}, { icon: ReactionIcon }>,
+	req: Request<{ id: string }, {}, ReqReaction>,
 	res: Response<APIResponse<null>>
 ) => {
 	if (!req.user?._id) {
 		return res.status(401).json({ message: 'Unauthorized' });
 	}
-	if (!req.body.icon || !ALLOWED_REACTIONS.includes(req.body.icon)) {
-		return res.status(400).json({ message: 'Invalid icon' });
+	if (
+		!req.body.action ||
+		(req.body.action !== 'REMOVE' &&
+			(!req.body.icon || !ALLOWED_REACTIONS.includes(req.body.icon)))
+	) {
+		return res.status(400).json({ message: 'Invalid request body' });
 	}
 
-	/* if user has no previous reaction, add one */
-	const newReaction = await Review.findOneAndUpdate(
-		{ _id: req.params.id, 'reactions.userId': { $ne: req.user._id } },
-		{
-			$push: {
-				reactions: <IReaction>{
-					userId: req.user._id,
-					icon: req.body.icon,
+	switch (req.body.action) {
+		case 'ADD':
+			const newReview = await Review.findOneAndUpdate(
+				{ _id: req.params.id, 'reactions.userId': { $ne: req.user._id } },
+				{
+					$push: {
+						reactions: <IReaction>{
+							userId: req.user._id,
+							icon: req.body.icon,
+						},
+					},
+				}
+			)
+				.exec()
+				.catch((err) => {
+					console.error(
+						`Error adding reaction ${(req.body as { icon: ReactionIcon }).icon} to review ${req.params.id}: ${err}`
+					);
+					return null;
+				});
+			if (!newReview) {
+				return res
+					.status(500)
+					.json({ message: 'Review already has a reaction' });
+			}
+			return res.status(201).json({ message: 'Reaction added' });
+
+		case 'CHANGE':
+			const updateReview = await Review.findOneAndUpdate(
+				{ _id: req.params.id, 'reactions.userId': req.user._id },
+				{
+					$set: {
+						'reactions.$[reaction].icon': req.body.icon,
+					},
 				},
-			},
-		}
-	).exec();
-	if (newReaction) {
-		return res.status(201).json({ message: 'Added reaction' });
-	}
+				{ arrayFilters: [{ 'reaction.userId': req.user._id }] }
+			)
+				.exec()
+				.catch((err) => {
+					console.error(
+						`Error changing reaction by user ${req.user?._id} on review ${req.params.id}: ${err}`
+					);
+					return null;
+				});
+			if (!updateReview) {
+				return res.status(500).json({ message: 'Failed to change reaction' });
+			}
+			return res.status(200).json({ message: 'Changed reaction successfully' });
 
-	/* if user has previous reaction, update it */
-	await Review.findOneAndUpdate(
-		{ _id: req.params.id },
-		{
-			$set: {
-				'reactions.$[reaction].icon': req.body.icon,
-			},
-		},
-		{ arrayFilters: [{ 'reaction.userId': req.user._id }] }
-	)
-		.exec()
-		.then(() => {
-			return res.status(200).json({ message: 'Modified reaction' });
-		})
-		.catch((err) => {
-			console.error(
-				`Error modifying an existing reaction for review ${req.params.id}`
-			);
-			return res.status(500).json({ message: err });
-		});
+		case 'REMOVE':
+			const removeReview = await Review.findOneAndUpdate(
+				{ _id: req.params.id, 'reactions.userId': req.user._id },
+				{
+					$pull: {
+						reactions: { userId: req.user._id },
+					},
+				}
+			)
+				.exec()
+				.catch((err) => {
+					console.error(
+						`Error removing reaction by user ${req.user?._id} from review ${req.params.id}: ${err}`
+					);
+					return null;
+				});
+			if (!removeReview) {
+				return res.status(500).json({ message: 'Error removing reaction' });
+			}
+			return res.status(200).json({ message: 'Removed reaction successfully' });
+
+		default:
+			return res
+				.status(418)
+				.json({ message: "Don't know how this was possible?" });
+	}
 };
