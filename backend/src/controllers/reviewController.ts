@@ -1,7 +1,9 @@
 import type { Request, Response } from 'express';
 import type {
 	APIResponse,
+	IReaction,
 	IReview,
+	ReactionIcon,
 	ReqReview,
 	ResReview,
 	ResUser,
@@ -9,6 +11,8 @@ import type {
 
 import { Review } from '../models/reviewModel';
 import { Product } from '../models/productModel';
+
+const ALLOWED_REACTIONS: ReactionIcon[] = ['👍', '❤️', '✨'];
 
 export const postReview = async (
 	req: Request<{}, {}, ReqReview>,
@@ -111,4 +115,53 @@ export const getReviewById = async (
 		console.error(err);
 		return res.status(400).json({ message: err.message });
 	}
+};
+
+export const addReactionToReview = async (
+	req: Request<{ id: string }, {}, { icon: ReactionIcon }>,
+	res: Response<APIResponse<null>>
+) => {
+	if (!req.user?._id) {
+		return res.status(401).json({ message: 'Unauthorized' });
+	}
+	if (!req.body.icon || !ALLOWED_REACTIONS.includes(req.body.icon)) {
+		return res.status(400).json({ message: 'Invalid icon' });
+	}
+
+	/* if user has no previous reaction, add one */
+	const newReaction = await Review.findOneAndUpdate(
+		{ _id: req.params.id, 'reactions.userId': { $ne: req.user._id } },
+		{
+			$push: {
+				reactions: <IReaction>{
+					userId: req.user._id,
+					icon: req.body.icon,
+				},
+			},
+		}
+	).exec();
+	if (newReaction) {
+		return res.status(201).json({ message: 'Added reaction' });
+	}
+
+	/* if user has previous reaction, update it */
+	await Review.findOneAndUpdate(
+		{ _id: req.params.id },
+		{
+			$set: {
+				'reactions.$[reaction].icon': req.body.icon,
+			},
+		},
+		{ arrayFilters: [{ 'reaction.userId': req.user._id }] }
+	)
+		.exec()
+		.then(() => {
+			return res.status(200).json({ message: 'Modified reaction' });
+		})
+		.catch((err) => {
+			console.error(
+				`Error modifying an existing reaction for review ${req.params.id}`
+			);
+			return res.status(500).json({ message: err });
+		});
 };

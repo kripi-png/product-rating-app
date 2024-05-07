@@ -7,6 +7,7 @@ const ReactionSchema = new Schema<IReaction>(
 	{
 		icon: {
 			type: String,
+			enum: ['👍', '❤️', '✨'],
 			required: true,
 			trim: true,
 		},

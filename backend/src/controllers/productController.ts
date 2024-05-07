@@ -63,8 +63,12 @@ export const getProductInfo = async (
 				console.error('openfoodfacts fetch error:', err);
 			});
 
-		/* in case even OFF didn't have the product data, inform the user and suggest submitting product info */
-		if (!offResponse || offResponse.result.id === 'product_not_found') {
+		/* in case even OFF didn't have the product data, or the name was missing, inform the user and suggest submitting product info */
+		if (
+			!offResponse ||
+			offResponse.result.id === 'product_not_found' ||
+			!offResponse.product.name
+		) {
 			console.log('not found');
 			return res.status(404).json({
 				message: 'product not found. consider submitting product information.',

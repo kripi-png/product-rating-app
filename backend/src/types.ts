@@ -21,8 +21,9 @@ export interface ResProduct {
 }
 
 /* REVIEW types */
+export type ReactionIcon = '👍' | '❤️' | '✨';
 export interface IReaction {
-	icon: string;
+	icon: ReactionIcon;
 	userId: Types.ObjectId;
 	createdAt?: Date;
 	updatedAt?: Date;

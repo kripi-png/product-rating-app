@@ -1,0 +1,21 @@
+meta {
+  name: add reaction
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:3000/reviews/66373df7c77ef4e5bee07e45/reaction
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_TOKEN}}
+}
+
+body:json {
+  {
+    "icon": "✨"
+  }
+}
