@@ -51,7 +51,10 @@ export interface ResReview {
 	rating: number;
 	text: string;
 	tags: string[];
-	reactions: IReaction[];
+	reactions: {
+		counts: { [key: string]: number };
+		selfReaction?: ReactionIcon;
+	};
 	picture?: string;
 	createdAt: Date;
 	updatedAt: Date;
@@ -80,7 +83,7 @@ export interface IUser {
 
 // type of data inside JWT tokens
 export interface IJWTUser {
-	_id: Types.ObjectId;
+	_id: string;
 	email: string;
 	displayName: string;
 	pictureUrl?: string;

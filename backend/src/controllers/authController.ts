@@ -47,7 +47,7 @@ export const sign_in = (
 
 		User.findOne(
 			{ email: req.body.email },
-			{ email: true, hash_password: true } // explicitly get email and password which are exluded by default
+			{ email: true, hash_password: true, displayName: true } // explicitly get email and password which are exluded by default
 		)
 			.exec()
 			.then((user) => {
@@ -60,7 +60,7 @@ export const sign_in = (
 						email: user.email,
 						displayName: user.displayName,
 						pictureUrl: user.picture,
-						_id: user._id,
+						_id: user._id as unknown as string,
 					},
 					process.env.JWT_SECRET as string
 				);

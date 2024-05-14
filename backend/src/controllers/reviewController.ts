@@ -12,7 +12,15 @@ import type {
 import { Review } from '../models/reviewModel';
 import { Product } from '../models/productModel';
 
+// define list of allowed reactions for checking icon using .includes()
+// also init an object of icon-count to be used as the initial value for .reduce():s
 const ALLOWED_REACTIONS: ReactionIcon[] = ['👍', '❤️', '✨'];
+const initialReactionCounts = ALLOWED_REACTIONS.reduce<{
+	[key: string]: number;
+}>((acc, icon) => {
+	acc[icon] = 0;
+	return acc;
+}, {});
 
 export const postReview = async (
 	req: Request<{}, {}, ReqReview>,
@@ -34,7 +42,7 @@ export const postReview = async (
 			productId: req.body.productBarcode,
 			productName: req.body.productName,
 			productBarcode: req.body.productBarcode,
-			authorId: req.user._id,
+			authorId: Object(req.user._id),
 			rating: req.body.rating,
 			text: req.body.text || '',
 			tags: req.body.tags || [],
@@ -58,7 +66,10 @@ export const postReview = async (
 					rating: review.rating,
 					text: review.text,
 					tags: review.tags,
-					reactions: review.reactions,
+					reactions: {
+						counts: initialReactionCounts,
+						selfReaction: undefined,
+					},
 					picture: review.picture,
 					createdAt: <Date>review.createdAt,
 					updatedAt: <Date>review.updatedAt,
@@ -78,6 +89,12 @@ export const getReviewById = async (
 	req: Request<{ id: string }>,
 	res: Response<APIResponse<ResReview>>
 ) => {
+	/*
+		Return review data by id.
+		authorId field contains review's author's display name and id
+		reactions contains an object of icons and their counts as well
+		as selfReaction for current user's reaction (which is included in the total count)
+	*/
 	try {
 		const review = await Review.findById(req.params.id);
 		if (!review) {
@@ -89,6 +106,19 @@ export const getReviewById = async (
 		review
 			.populate<{ authorId: ResUser }>('authorId')
 			.then((review) => {
+				const reviewByUser = review.reactions.find(
+					(r) => r.userId.toString() === req.user?._id
+				);
+				const reactionCounts = review.reactions.reduce<{
+					[key: string]: number;
+				}>(
+					(acc, reaction) => {
+						acc[reaction.icon] += 1;
+						return acc;
+					},
+					{ ...initialReactionCounts } // create copy of the initial obj to not edit that
+				);
+
 				return res.status(200).json({
 					_id: review._id,
 					productBarcode: review.productBarcode,
@@ -101,7 +131,10 @@ export const getReviewById = async (
 					rating: review.rating,
 					text: review.text,
 					tags: review.tags,
-					reactions: review.reactions,
+					reactions: {
+						counts: reactionCounts,
+						selfReaction: reviewByUser?.icon,
+					},
 					picture: review.picture,
 					createdAt: <Date>review.createdAt,
 					updatedAt: <Date>review.updatedAt,
@@ -119,11 +152,7 @@ export const getReviewById = async (
 
 type ReqReaction =
 	| {
-			action: 'ADD';
-			icon: ReactionIcon;
-	  }
-	| {
-			action: 'CHANGE';
+			action: 'ADD' | 'CHANGE';
 			icon: ReactionIcon;
 	  }
 	| {
@@ -152,7 +181,7 @@ export const addReactionToReview = async (
 				{
 					$push: {
 						reactions: <IReaction>{
-							userId: req.user._id,
+							userId: Object(req.user._id),
 							icon: req.body.icon,
 						},
 					},
@@ -184,6 +213,7 @@ export const addReactionToReview = async (
 			)
 				.exec()
 				.catch((err) => {
+					req.body;
 					console.error(
 						`Error changing reaction by user ${req.user?._id} on review ${req.params.id}: ${err}`
 					);
