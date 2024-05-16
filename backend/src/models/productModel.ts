@@ -1,11 +1,9 @@
-import type { IProduct } from '../types';
-
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { validate as validateBarcode } from '../utils/barcodeValidator';
 
-const Schema = mongoose.Schema;
+import type { ProductDocument, ProductModel, ProductSchema } from '../interfaces/mongoose.gen';
 
-const ProductSchema = new Schema<IProduct>(
+const ProductSchema: ProductSchema = new Schema(
 	{
 		_id: {
 			type: String,
@@ -32,4 +30,4 @@ const ProductSchema = new Schema<IProduct>(
 	{ timestamps: true }
 );
 
-export const Product = mongoose.model<IProduct>('Product', ProductSchema);
+export const Product = mongoose.model<ProductDocument, ProductModel>('Product', ProductSchema);

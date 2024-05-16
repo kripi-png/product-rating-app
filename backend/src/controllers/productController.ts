@@ -1,8 +1,9 @@
 import type { Request, Response } from 'express';
-import type { APIResponse, IProduct, ResProduct } from '../types';
+import type { APIResponse, ResProduct } from '../types';
 
 import { Product } from '../models/productModel';
 import { redis } from '../cache';
+import { ProductDocument } from '../interfaces/mongoose.gen';
 
 export const getProductInfo = async (
 	req: Request<{ barcode: string }>,
@@ -10,7 +11,7 @@ export const getProductInfo = async (
 ) => {
 	try {
 		/* preferably database already holds info of product */
-		const products: IProduct[] = await Product.aggregate()
+		const products: ProductDocument[] = await Product.aggregate()
 			.match({ _id: req.params.barcode })
 			// calculate average rating
 			.lookup({
@@ -44,7 +45,7 @@ export const getProductInfo = async (
 			redis
 				.pipeline()
 				.hset(`products:${product._id}`, prepareResponse)
-				.expire(`products:${product.barcode}`, cacheLifetimeDays * 24 * 60 * 60)
+				.expire(`products:${product._id}`, cacheLifetimeDays * 24 * 60 * 60)
 				.exec();
 			return res.status(200).json(prepareResponse);
 		}
@@ -77,7 +78,7 @@ export const getProductInfo = async (
 
 		/* if OFF had the data, create a db entry for it */
 		if (offResponse && offResponse.product) {
-			const newProduct = new Product<IProduct>({
+			const newProduct = new Product({
 				_id: offResponse.product.code,
 				name: offResponse.product.product_name_en,
 			});
@@ -112,7 +113,7 @@ export const addProductInformation = async (
 	res: Response<APIResponse<ResProduct>>
 ) => {
 	try {
-		const newProduct = new Product<IProduct>({
+		const newProduct = new Product({
 			_id: req.body.barcode,
 			name: req.body.name,
 		});

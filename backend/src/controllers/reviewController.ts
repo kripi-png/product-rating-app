@@ -1,8 +1,6 @@
 import type { Request, Response } from 'express';
 import type {
 	APIResponse,
-	IReaction,
-	IReview,
 	ReactionIcon,
 	ReqReview,
 	ResReview,
@@ -38,14 +36,14 @@ export const postReview = async (
 			return res.status(401).json({ message: 'Unauthorized' });
 		}
 
-		const newReview = new Review<IReview>({
+		const newReview = new Review({
 			productId: req.body.productBarcode,
 			productName: req.body.productName,
 			productBarcode: req.body.productBarcode,
 			authorId: Object(req.user._id),
 			rating: req.body.rating,
-			text: req.body.text || '',
-			tags: req.body.tags || [],
+			text: req.body.text,
+			tags: req.body.tags,
 			picture: req.body.picture,
 			reactions: [],
 		});
@@ -180,7 +178,7 @@ export const addReactionToReview = async (
 				{ _id: req.params.id, 'reactions.userId': { $ne: req.user._id } },
 				{
 					$push: {
-						reactions: <IReaction>{
+						reactions: {
 							userId: Object(req.user._id),
 							icon: req.body.icon,
 						},

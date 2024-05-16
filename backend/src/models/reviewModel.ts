@@ -1,9 +1,9 @@
-import mongoose from 'mongoose';
-import type { IReview, IReaction } from '../types';
+import mongoose, { Schema } from 'mongoose';
 
-const Schema = mongoose.Schema;
+import type { ReviewDocument, ReviewModel, ReviewSchema } from '../interfaces/mongoose.gen';
 
-const ReactionSchema = new Schema<IReaction>(
+
+const ReactionSchema = new Schema(
 	{
 		icon: {
 			type: String,
@@ -13,13 +13,14 @@ const ReactionSchema = new Schema<IReaction>(
 		},
 		userId: {
 			type: Schema.Types.ObjectId,
+			required: true,
 			ref: 'User',
 		},
 	},
 	{ timestamps: true }
 );
 
-const ReviewSchema = new Schema<IReview>(
+const ReviewSchema: ReviewSchema = new Schema(
 	{
 		productId: {
 			type: String,
@@ -60,6 +61,8 @@ const ReviewSchema = new Schema<IReview>(
 		text: {
 			type: String,
 			trim: true,
+			required: true,
+			default: "",
 		},
 		tags: [
 			{
@@ -72,4 +75,4 @@ const ReviewSchema = new Schema<IReview>(
 	{ timestamps: true }
 );
 
-export const Review = mongoose.model<IReview>('Review', ReviewSchema);
+export const Review = mongoose.model<ReviewDocument, ReviewModel>('Review', ReviewSchema);

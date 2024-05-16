@@ -25,7 +25,7 @@ export const register = (
 				// do not return the hashed password
 				return res.status(201).json({ message: 'New user registered.' });
 			})
-			.catch((err) => {
+			.catch((err: any) => {
 				return res.status(500).json({
 					message: err,
 				});

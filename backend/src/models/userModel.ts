@@ -1,11 +1,8 @@
-import type { IUser } from '../types';
-
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import type { UserDocument, UserModel, UserSchema } from '../interfaces/mongoose.gen';
 import bcrypt from 'bcrypt';
 
-const Schema = mongoose.Schema;
-
-const UserSchema = new Schema<IUser>(
+const UserSchema: UserSchema = new Schema(
 	{
 		displayName: {
 			type: String,
@@ -22,7 +19,7 @@ const UserSchema = new Schema<IUser>(
 		},
 		hash_password: {
 			type: String,
-			requred: true,
+			required: true,
 			select: false,
 		},
 		picture: {
@@ -36,4 +33,4 @@ UserSchema.methods.comparePassword = function (password: string) {
 	return bcrypt.compareSync(password, this.hash_password);
 };
 
-export const User = mongoose.model<IUser>('User', UserSchema);
+export const User = mongoose.model<UserDocument, UserModel>('User', UserSchema);
