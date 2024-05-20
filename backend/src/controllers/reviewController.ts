@@ -84,7 +84,7 @@ export const postReview = async (
 };
 
 export const getReviewById = async (
-	req: Request<{ id: string }>,
+	req: Request<{ id: string }, {}, {}>,
 	res: Response<APIResponse<ResReview>>
 ) => {
 	/*
@@ -98,7 +98,7 @@ export const getReviewById = async (
 		if (!review) {
 			return res
 				.status(404)
-				.json({ message: `There is no review with id ${req.body.id}` });
+				.json({ message: `There is no review with id ${req.params.id}` });
 		}
 
 		review
@@ -164,6 +164,9 @@ export const addReactionToReview = async (
 	if (!req.user?._id) {
 		return res.status(401).json({ message: 'Unauthorized' });
 	}
+	if (!['ADD', 'CHANGE', 'REMOVE'].includes(req.body.action)) {
+		return res.status(400).json({ message: "Invalid action. Use either ADD, CHANGE, or REMOVE" });
+	}
 	if (
 		!req.body.action ||
 		(req.body.action !== 'REMOVE' &&
@@ -195,7 +198,7 @@ export const addReactionToReview = async (
 			if (!newReview) {
 				return res
 					.status(500)
-					.json({ message: 'Review already has a reaction' });
+					.json({ message: 'Review already has a reaction by the user' });
 			}
 			return res.status(201).json({ message: 'Reaction added' });
 
