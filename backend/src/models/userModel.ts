@@ -1,5 +1,9 @@
 import mongoose, { Schema } from 'mongoose';
-import type { UserDocument, UserModel, UserSchema } from '../interfaces/mongoose.gen';
+import type {
+	UserDocument,
+	UserModel,
+	UserSchema,
+} from '../interfaces/mongoose.gen';
 import bcrypt from 'bcrypt';
 
 const UserSchema: UserSchema = new Schema(

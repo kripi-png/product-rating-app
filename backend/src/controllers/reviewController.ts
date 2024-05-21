@@ -165,7 +165,9 @@ export const addReactionToReview = async (
 		return res.status(401).json({ message: 'Unauthorized' });
 	}
 	if (!['ADD', 'CHANGE', 'REMOVE'].includes(req.body.action)) {
-		return res.status(400).json({ message: "Invalid action. Use either ADD, CHANGE, or REMOVE" });
+		return res
+			.status(400)
+			.json({ message: 'Invalid action. Use either ADD, CHANGE, or REMOVE' });
 	}
 	if (
 		!req.body.action ||
@@ -252,3 +254,36 @@ export const addReactionToReview = async (
 				.json({ message: "Don't know how this was possible?" });
 	}
 };
+
+export const editReview = async (
+	req: Request<{ id: string }, {}, ReqReview>,
+	res: Response<APIResponse<ResReview>>
+) => {
+	const editedReview = await Review.findOneAndUpdate(
+		{ _id: req.params.id },
+		{
+			productBarcode: req.body.productBarcode,
+			productName: req.body.productName,
+			rating: req.body.rating,
+			picture: req.body.picture,
+			text: req.body.text,
+			tags: req.body.tags,
+		},
+		{ new: true }
+	)
+		.exec()
+		.catch((err) => {
+			console.error(err);
+			return null;
+		});
+
+	if (!editedReview) {
+		return res.status(500).json({ message: 'Error editing review' });
+	}
+	return res.status(200).json({ message: 'Review edited successfully' });
+};
+
+export const removeReview = async (
+	req: Request<{ id: string }, {}, {}>,
+	res: Response<APIResponse<null>>
+) => {};

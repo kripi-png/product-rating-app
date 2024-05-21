@@ -37,5 +37,3 @@ export const checkCacheMiddleware =
 
 		res.status(200).json(product);
 	};
-
-

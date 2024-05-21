@@ -1,7 +1,10 @@
 import mongoose, { Schema } from 'mongoose';
 
-import type { ReviewDocument, ReviewModel, ReviewSchema } from '../interfaces/mongoose.gen';
-
+import type {
+	ReviewDocument,
+	ReviewModel,
+	ReviewSchema,
+} from '../interfaces/mongoose.gen';
 
 const ReactionSchema = new Schema(
 	{
@@ -62,7 +65,7 @@ const ReviewSchema: ReviewSchema = new Schema(
 			type: String,
 			trim: true,
 			required: true,
-			default: "",
+			default: '',
 		},
 		tags: [
 			{
@@ -75,4 +78,7 @@ const ReviewSchema: ReviewSchema = new Schema(
 	{ timestamps: true }
 );
 
-export const Review = mongoose.model<ReviewDocument, ReviewModel>('Review', ReviewSchema);
+export const Review = mongoose.model<ReviewDocument, ReviewModel>(
+	'Review',
+	ReviewSchema
+);

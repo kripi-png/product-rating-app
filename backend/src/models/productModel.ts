@@ -1,7 +1,11 @@
 import mongoose, { Schema } from 'mongoose';
 import { validate as validateBarcode } from '../utils/barcodeValidator';
 
-import type { ProductDocument, ProductModel, ProductSchema } from '../interfaces/mongoose.gen';
+import type {
+	ProductDocument,
+	ProductModel,
+	ProductSchema,
+} from '../interfaces/mongoose.gen';
 
 const ProductSchema: ProductSchema = new Schema(
 	{
@@ -30,4 +34,7 @@ const ProductSchema: ProductSchema = new Schema(
 	{ timestamps: true }
 );
 
-export const Product = mongoose.model<ProductDocument, ProductModel>('Product', ProductSchema);
+export const Product = mongoose.model<ProductDocument, ProductModel>(
+	'Product',
+	ProductSchema
+);
