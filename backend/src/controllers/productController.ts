@@ -2,8 +2,9 @@ import type { Request, Response } from 'express';
 import type { APIResponse, ResProduct } from '../types';
 
 import { Product } from '../models/productModel';
+import { Review } from '../models/reviewModel';
 import { redis } from '../cache';
-import { ProductDocument } from '../interfaces/mongoose.gen';
+import { ProductDocument, ReviewDocument } from '../interfaces/mongoose.gen';
 
 export const getProductInfo = async (
 	req: Request<{ barcode: string }>,
@@ -132,6 +133,21 @@ export const addProductInformation = async (
 				console.error('error while saving a new product');
 				return res.status(500).json({ message: err });
 			});
+	} catch (err: any) {
+		console.error(err);
+		return res.status(400).json({ message: err.message });
+	}
+};
+
+export const getReviewsForProduct = async (
+	req: Request<{ barcode: string }, {}, {}>,
+	res: Response<APIResponse<ReviewDocument[]>>
+) => {
+	try {
+		const reviews: ReviewDocument[] = await Review.find({
+			productBarcode: req.params.barcode,
+		}).populate('authorId');
+		return res.status(200).json(reviews);
 	} catch (err: any) {
 		console.error(err);
 		return res.status(400).json({ message: err.message });

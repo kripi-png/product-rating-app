@@ -5,6 +5,9 @@ import { checkCacheMiddleware as checkCache } from '../cache';
 
 export default (app: Application) => {
 	app
+		.route('/products/:barcode/reviews')
+		.get(loginRequired, productController.getReviewsForProduct);
+	app
 		.route('/products/:barcode')
 		.get(
 			loginRequired,
