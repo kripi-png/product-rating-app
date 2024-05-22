@@ -259,8 +259,9 @@ export const editReview = async (
 	req: Request<{ id: string }, {}, ReqReview>,
 	res: Response<APIResponse<ResReview>>
 ) => {
+	// req.body can include only the values that should change because findOneAndUpdate ignores undefined values
 	const editedReview = await Review.findOneAndUpdate(
-		{ _id: req.params.id },
+		{ _id: req.params.id, authorId: req.user?._id }, // find by id but ensure the author is the current user
 		{
 			productBarcode: req.body.productBarcode,
 			productName: req.body.productName,
@@ -269,7 +270,7 @@ export const editReview = async (
 			text: req.body.text,
 			tags: req.body.tags,
 		},
-		{ new: true }
+		{ new: true } // return updated doc instead of pre-update
 	)
 		.exec()
 		.catch((err) => {
@@ -286,4 +287,20 @@ export const editReview = async (
 export const removeReview = async (
 	req: Request<{ id: string }, {}, {}>,
 	res: Response<APIResponse<null>>
-) => {};
+) => {
+	const deleted = await Review.findOneAndDelete({
+		_id: req.params.id,
+		authorId: req.user?._id,
+	})
+		.exec()
+		.catch((err) => {
+			console.error(err);
+			return null;
+		});
+
+	if (!deleted) {
+		return res.status(500).json({ message: 'Could not delete the review' });
+	}
+
+	return res.status(200).json({ message: 'Review deleted successfully' });
+};
