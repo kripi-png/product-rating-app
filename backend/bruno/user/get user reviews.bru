@@ -1,0 +1,15 @@
+meta {
+  name: get user reviews
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:3000/user/me/reviews
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_TOKEN}}
+}
