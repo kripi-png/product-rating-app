@@ -18,7 +18,7 @@ import mongoose from 'mongoose';
 export type Product = {
 	_id: string;
 	name: string;
-	avgRating?: number;
+	avgRating?: number | null;
 	createdAt?: Date;
 	updatedAt?: Date;
 };
@@ -97,7 +97,7 @@ export type ProductDocument = mongoose.Document<string, ProductQueries> &
 	ProductMethods & {
 		_id: string;
 		name: string;
-		avgRating?: number;
+		avgRating?: number | null;
 		barcode: string;
 		createdAt?: Date;
 		updatedAt?: Date;
