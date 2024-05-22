@@ -1,0 +1,21 @@
+meta {
+  name: edit review
+  type: http
+  seq: 4
+}
+
+put {
+  url: http://localhost:3000/reviews/664dc1bb021829bcf938804a
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_TOKEN}}
+}
+
+body:json {
+  {
+    "rating": 4.8
+  }
+}

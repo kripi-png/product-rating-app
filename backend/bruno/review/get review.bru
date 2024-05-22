@@ -1,0 +1,15 @@
+meta {
+  name: get review
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:3000/reviews/664b5c05a3e35aec65e6599e
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_TOKEN}}
+}
